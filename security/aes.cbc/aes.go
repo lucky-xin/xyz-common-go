@@ -12,7 +12,21 @@ type Encryptor struct {
 	Iv  string
 }
 
-func (e *Encryptor) Encrypt(origData []byte) (r string, err error) {
+func (e *Encryptor) Encrypt(origData []byte) (byts []byte, err error) {
+	block, err := aes.NewCipher([]byte(e.Key))
+	if err != nil {
+		return
+	}
+	blockSize := block.BlockSize()
+	origData = PKCS5Padding(origData, blockSize)
+	blockMode := cipher.NewCBCEncrypter(block, []byte(e.Iv))
+	crypted := make([]byte, len(origData))
+	blockMode.CryptBlocks(crypted, origData)
+	byts = crypted
+	return
+}
+
+func (e *Encryptor) EncryptWithBase64(origData []byte) (r string, err error) {
 	block, err := aes.NewCipher([]byte(e.Key))
 	if err != nil {
 		return
@@ -25,7 +39,7 @@ func (e *Encryptor) Encrypt(origData []byte) (r string, err error) {
 	return base64.StdEncoding.EncodeToString(crypted), nil
 }
 
-func (e *Encryptor) Decrypt(crypted string) (re string, err error) {
+func (e *Encryptor) Decrypt(crypted string) (byts []byte, err error) {
 	decodeData, err := base64.StdEncoding.DecodeString(crypted)
 	if err != nil {
 		return
@@ -37,8 +51,8 @@ func (e *Encryptor) Decrypt(crypted string) (re string, err error) {
 	blockMode := cipher.NewCBCDecrypter(block, []byte(e.Iv))
 	origData := make([]byte, len(decodeData))
 	blockMode.CryptBlocks(origData, decodeData)
-	origData = PKCS5UnPadding(origData)
-	return string(origData), nil
+	byts = PKCS5UnPadding(origData)
+	return
 }
 
 func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
