@@ -2,21 +2,27 @@ package text
 
 import (
 	"bytes"
-	"encoding/binary"
 	"errors"
+	"github.com/lucky-xin/xyz-common-go/byteutil"
 )
 
+// Segment 文本段
 type Segment struct {
+	// Length 段长度
 	Length int
-	Bytes  []byte
+	// Bytes 段内容
+	Bytes []byte
 }
 
-type Text struct {
+// Block 文本数据块
+type Block struct {
+	// MagicByte 魔法标识
 	MagicByte *byte
-	Segments  []*Segment
+	// Segments 分段列表
+	Segments []*Segment
 }
 
-func FromBuffer(magicByte *byte, buffer *bytes.Buffer) (block *Text, err error) {
+func FromBuffer(magicByte *byte, buffer *bytes.Buffer) (block *Block, err error) {
 	var segments []*Segment
 	payload := buffer.Bytes()
 	start := 0
@@ -29,28 +35,24 @@ func FromBuffer(magicByte *byte, buffer *bytes.Buffer) (block *Text, err error) 
 	}
 
 	for start < len(payload) {
-		l, byts := ReadBytes(payload, start)
+		l, byts := byteutil.ReadBytes(payload, start)
 		segments = append(segments, &Segment{Bytes: byts, Length: l})
 		start += l + 4
 	}
-	block = &Text{Segments: segments}
+	block = &Block{Segments: segments}
 	return
 }
 
-func (block *Text) ToBuffer() (buff *bytes.Buffer, err error) {
+func (block *Block) ToBuffer() (buff bytes.Buffer, err error) {
+	if block.MagicByte != nil {
+		buff.WriteByte(*block.MagicByte)
+	}
 	for i := range block.Segments {
 		s := block.Segments[i]
-		_, err = buff.Write(s.Bytes)
+		err = byteutil.WriteBytes(&buff, s.Bytes)
 		if err != nil {
 			return
 		}
 	}
 	return
-}
-
-func ReadBytes(payload []byte, start int) (l int, byts []byte) {
-	idx := start + 4
-	l = int(binary.BigEndian.Uint32(payload[start:idx]))
-	byts = payload[idx : idx+l]
-	return l, byts
 }

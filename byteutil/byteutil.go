@@ -5,10 +5,10 @@ import (
 	"encoding/binary"
 )
 
-func ReadBytes(payload []byte, start uint32) (uint32, []byte) {
-	uuidLen := binary.BigEndian.Uint32(payload[start : start+4])
-	uuidBytes := payload[start+4 : start+4+uuidLen]
-	return uuidLen, uuidBytes
+func ReadBytes(payload []byte, start int) (int, []byte) {
+	l := int(binary.BigEndian.Uint32(payload[start : start+4]))
+	byts := payload[start+4 : start+4+l]
+	return l, byts
 }
 
 func WriteBytes(buffer *bytes.Buffer, byes []byte) (err error) {
