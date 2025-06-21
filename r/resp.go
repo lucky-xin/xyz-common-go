@@ -19,8 +19,8 @@ func Succeed[T any](data T) Resp[T] {
 	}
 }
 
-func Failed(msg string) Resp[interface{}] {
-	return Resp[interface{}]{
+func Failed[T any](msg string) Resp[T] {
+	return Resp[T]{
 		BizCode:  0,
 		BizMsg:   msg,
 		BizReqId: uuid.New().String(),
