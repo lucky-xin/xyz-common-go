@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/lucky-xin/xyz-common-go/r"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -24,7 +25,7 @@ func SendMsg(endpoint, chatId, content string) (re r.Resp[any]) {
 	response, err := http.Post(endpoint, "application/json", bytes.NewBuffer([]byte(params)))
 	defer func(b io.ReadCloser) {
 		if er := b.Close(); er != nil {
-			panic(er)
+			log.Panicln(er)
 		}
 	}(response.Body)
 

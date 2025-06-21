@@ -9,6 +9,14 @@ type Resp[T any] struct {
 	BizReqId string `json:"reqId" binding:"required"`
 }
 
+func New[T any](code int32, msg string, data T) Resp[T] {
+	return Resp[T]{
+		BizCode:  0,
+		BizMsg:   msg,
+		BizReqId: uuid.New().String(),
+	}
+}
+
 func Succeed[T any](data T) Resp[T] {
 	id := uuid.New()
 	return Resp[T]{
@@ -19,8 +27,8 @@ func Succeed[T any](data T) Resp[T] {
 	}
 }
 
-func Failed[T any](msg string) Resp[T] {
-	return Resp[T]{
+func Failed(msg string) Resp[any] {
+	return Resp[any]{
 		BizCode:  0,
 		BizMsg:   msg,
 		BizReqId: uuid.New().String(),
